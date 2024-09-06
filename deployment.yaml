@@ -1,0 +1,171 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: saleor
+
+---
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saleor-api
+  namespace: saleor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: saleor-api
+  template:
+    metadata:
+      labels:
+        app: saleor-api
+    spec:
+      containers:
+      - name: saleor-api
+        image: ghcr.io/saleor/saleor:3.20
+        ports:
+        - containerPort: 8000
+        securityContext:
+          runAsUser: 1000                  
+          runAsGroup: 1000                
+          allowPrivilegeEscalation: false  
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "500m"
+        env:
+        - name: ALLOWED_HOSTS
+          value: "localhost,api,192.168.49.2,35.193.247.113"
+        - name: JAEGER_AGENT_HOST
+          value: "jaeger"
+        - name: DASHBOARD_URL
+          value: "http://localhost:9000/"
+        - name: DATABASE_URL
+          value: "postgres://saleor:saleor@postgres:5432/saleor"
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saleor-dashboard
+  namespace: saleor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: saleor-dashboard
+  template:
+    metadata:
+      labels:
+        app: saleor-dashboard
+    spec:
+      containers:
+      - name: saleor-dashboard
+        image: ghcr.io/saleor/saleor-dashboard:latest 
+        ports:
+        - containerPort: 80 
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "100m"
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  namespace: saleor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+    spec:
+      containers:
+        - name: jaeger
+          image: jaegertracing/all-in-one:1.60
+          ports:
+            - containerPort: 16686
+            - containerPort: 6831
+            - containerPort: 6832
+            - containerPort: 14268
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          env:
+            - name: COLLECTOR_ZIPKIN_HTTP_PORT
+              value: "9411"
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger
+  namespace: saleor
+spec:
+  selector:
+    app: jaeger
+  ports:
+    - name: jaeger-ui
+      port: 16686
+      targetPort: 16686
+      protocol: TCP
+  type: LoadBalancer
+
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: saleor-api
+  namespace: saleor
+spec:
+  selector:
+    app: saleor-api
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: LoadBalancer
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: saleor-dashboard
+  namespace: saleor
+spec:
+  selector:
+    app: saleor-dashboard
+  ports:
+  - protocol: TCP
+    port: 9002
+    targetPort: 80
+  type: LoadBalancer
+
