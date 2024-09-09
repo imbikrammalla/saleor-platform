@@ -1,15 +1,19 @@
-REPO="gcr.io/moonlit-sphinx-433913-h6"
-
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 
-OUTPUT_FILE="scan_results/trivy_scan_results_$TIMESTAMP.txt"
+# Define the output file name
+OUTPUT_FILE="trivy_files/trivy_results_$TIMESTAMP.txt"
 
-IMAGES=$(gcloud container images list --repository=$REPO --format='value(NAME)')
+# Create the output directory if it doesn't exist
+mkdir -p trivy_files
 
-for IMAGE in $IMAGES; do
+# Define the list of images to scan
+IMAGES=("ghcr.io/saleor/saleor:latest" "ghcr.io/saleor/saleor-dashboard:latest" "jaegertracing/all-in-one" "postgres:15-alpine" "redis:7.0-alpine")
+
+# Loop through each image and scan it using Trivy, saving output to the file
+for IMAGE in "${IMAGES[@]}"; do
     echo "Scanning $IMAGE..." | tee -a $OUTPUT_FILE
-    trivy  $IMAGE | tee -a $OUTPUT_FILE
+    trivy image "$IMAGE" | tee -a $OUTPUT_FILE
     echo "-------------------------------------" | tee -a $OUTPUT_FILE
 done
 
-echo "Trivy results has been saved to $OUTPUT_FILE"
+echo "Scan results saved to $OUTPUT_FILE"
