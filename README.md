@@ -18,26 +18,6 @@ Redis: In-memory store for caching and message brokering, enhancing performance 
 
 ```bash
 git clone https://github.com/imbikrammalla/saleor-platform.git
-# Saleor Platform Deployment on Google Kubernetes Engine (GKE)
-
-This repository offers comprehensive configuration files and deployment guidelines for running the Saleor platform on Google Kubernetes Engine (GKE). The setup integrates multiple core services, such as the API, Storefront, Dashboard, PostgreSQL database, and Redis caching system, ensuring a robust and scalable deploymen
-
-## Preview
-This setup deploys the Saleor platform on GKE using Kubernetes, harnessing cloud-native technologies for scalability, reliability, and streamlined management. The deployment includes the following key services:
-
-Saleor API: Powers the backend of the Saleor platform.
-Jaeger: Default frontend for the e-commerce site.
-Saleor Dashboard: Administrative interface for platform management.
-PostgreSQL: Managed database solution for persistent data storage.
-Redis: In-memory store for caching and message brokering, enhancing performance and efficiency.
-
-
-## Overall Setup
-
-1. Clone the Repository
-
-```bash
-git clone https://github.com/imbikrammalla/saleor-platform.git
 cd saleor-platform
 
 ```
@@ -96,5 +76,3 @@ kubectl logs <pod-name> -n saleor
 ```bash
 trivy image <your image to be scanned>
 ```
-
-
